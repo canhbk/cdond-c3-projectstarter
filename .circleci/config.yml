@@ -164,6 +164,46 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
 
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11 # Docker image here that supports Ansible
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "33:b4:fb:6f:95:4e:c4:aa:3d:ed:0f:83:e9:8f:de:88"
+      - run:
+          name: Install dependencies
+          command: |
+            # install the dependencies needed for your playbook
+            apk add --update ansible
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Configure variable
+          command: |
+            echo ENVIRONMENT=production > backend/.env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
+            cat backend/.env
+      - run:
+          name: Configure server
+          working_directory: ./.circleci/ansible
+          command: |
+            ansible-playbook -i inventory.txt configure-server.yml -vv
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/backend
+      - destroy-environment:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}
 workflows:
   default:
     jobs:
@@ -179,3 +219,5 @@ workflows:
           requires: [build-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
