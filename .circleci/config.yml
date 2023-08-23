@@ -25,6 +25,15 @@ commands:
             echo "Deleting Cloud Formation Backend Stack"
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.id >> --output text
 
+  install_awscli:
+    description: Install AWS CLI v2
+    steps:
+      - run:
+          name: Install AWS CLI v2
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
 jobs:
   build-frontend:
     docker:
@@ -156,6 +165,7 @@ jobs:
                --query 'Reservations[*].Instances[*].PublicIpAddress' \
                --output text)
             echo $BACKEND_PUBLIC_IP >> .circleci/ansible/inventory.txt
+            curl --insecure https://kvdb.io/XesEfzsCUXSXFJDzT2prZk/backendurl -d $(echo $BACKEND_PUBLIC_IP)
             cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
@@ -320,6 +330,43 @@ jobs:
             cd ..
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml -vvv
+  smoke-test:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl
+            pip install awscli
+      - run:
+          name: Backend smoke test.
+          command: |
+            export BACKEND_URL=$(curl --insecure https://kvdb.io/XesEfzsCUXSXFJDzT2prZk/backendurl)
+            echo $BACKEND_URL
+            curl "$BACKEND_URL:3030/api/status"
+            if curl "$BACKEND_URL:3030/api/status" | grep "ok"
+            then
+              return 0
+            else
+              return 1
+            fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com"
+            echo $URL
+            if curl -s ${URL} | grep "Welcome"
+            then
+              return 0
+            else
+              return 1
+            fi
+      - destroy-environment:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}
 workflows:
   default:
     jobs:
@@ -343,3 +390,5 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
