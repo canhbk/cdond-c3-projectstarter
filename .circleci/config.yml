@@ -302,7 +302,7 @@ jobs:
             npm run build
             cp .env dist
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive --acl bucket-owner-full-control
+            aws s3 cp dist s3://uda-app-canhnv --recursive --acl bucket-owner-full-control
 
   deploy-backend:
     docker:
