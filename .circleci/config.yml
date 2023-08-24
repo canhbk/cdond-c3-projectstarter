@@ -44,7 +44,7 @@ commands:
               pwd
               ls -la
               npm install
-              npm run migration:revert
+              npm run migrations:revert
             fi
   install_awscli:
     description: Install AWS CLI v2
