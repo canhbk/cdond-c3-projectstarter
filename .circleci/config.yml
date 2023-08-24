@@ -16,7 +16,7 @@ commands:
           when: on_fail
           command: |
             echo "Deleting Cloud Formation Frontend Stack"
-            aws s3 rm s3://udapeople-<< parameters.id >> --recursive
+            aws s3 rm s3://uda-app-canhnv --recursive
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.id >> --output text
       - run:
           name: Destroy Cloud Formation Backend Stacks and infrastructure
