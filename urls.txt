@@ -1,4 +1,4 @@
 # Submit Result
 
 1. URL01: <https://github.com/canhbk/cdond-c3-projectstarter>
-2. URL02: <http://udapeople-442d197.s3-website-us-east-1.amazonaws.com/>
+2. URL02: <http://uda-app-canhnv.s3-website-us-east-1.amazonaws.com/>
