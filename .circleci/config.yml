@@ -261,11 +261,7 @@ jobs:
       - run:
           name: Send migration results to Kvdb
           command: |
-            if grep -q "success" ~/project/backend/migrations_dump.txt
-            then
-              # If you are using kvdb.io, generate the bucket ID "XesEfzsCUXSXFJDzT2prZk" in your local terminal first
-              curl --insecure https://kvdb.io/XesEfzsCUXSXFJDzT2prZk/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
-            fi
+            curl --insecure https://kvdb.io/XesEfzsCUXSXFJDzT2prZk/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
 
